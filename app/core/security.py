@@ -1,24 +1,34 @@
-from passlib.context import CryptContext
-from jose import jwt
+"""
+Вся логика безопасности:
+- хеширование паролей
+- создание JWT
+"""
+
 from datetime import datetime, timedelta
+from jose import jwt
+from passlib.hash import bcrypt
+from app.core.config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_SECONDS
 
-import os
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-SECRET_KEY = os.getenv("RANDOM_SECRET")
-ALGORITHMS = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """Хешируем пароль перед сохранением в БД"""
+    return bcrypt.hash(password)
+
 
 def verify_password(password: str, hashed: str) -> bool:
-    return pwd_context.verify(password, hashed)
+    """Проверяем пароль при логине"""
+    return bcrypt.verify(password, hashed)
 
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHMS)
 
+def create_access_token(user_id: str, role: str) -> str:
+    """
+    Генерируем JWT-токен.
+    payload строго по ТЗ: sub, role, iat, exp
+    """
+    payload = {
+        "sub": user_id,
+        "role": role,
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(seconds=JWT_EXPIRE_SECONDS),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

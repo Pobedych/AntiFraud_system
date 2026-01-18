@@ -1,24 +1,45 @@
+"""
+Точка входа приложения.
+Создает таблицы и начального администратора.
+"""
+
 from fastapi import FastAPI
-from app.core.database import Base, engine
-from app.routers import auth, users, fraud_rules, transactions
-from app.services.admin_init import create_admin_if_not_exists
-from contextlib import contextmanager
+from app.core.database import Base, engine, SessionLocal
+from app.core.config import ADMIN_EMAIL, ADMIN_FULLNAME, ADMIN_PASSWORD
+from app.core.security import hash_password
+from app.models.user import User
+from app.api import ping, auth, users, fraud_rules, transactions
+
+app = FastAPI(title="AntiFraud Service")
+
+# Подключаем все роутеры
+app.include_router(ping.router)
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(fraud_rules.router)
+app.include_router(transactions.router)
+
+# Создаем таблицы
+Base.metadata.create_all(bind=engine)
 
 
-@contextmanager
-async def lifespan(app: FastAPI):
-    Base.metadata.create_all(engine)
-    create_admin_if_not_exists()
-    yield
+def create_admin():
+    """
+    Создаем администратора при старте, если его еще нет.
+    Это КРИТИЧНО для автотестов.
+    """
+    db = SessionLocal()
+    exists = db.query(User).filter(User.role == "ADMIN").first()
+    if not exists:
+        admin = User(
+            email=ADMIN_EMAIL,
+            full_name=ADMIN_FULLNAME,
+            password_hash=hash_password(ADMIN_PASSWORD),
+            role="ADMIN",
+        )
+        db.add(admin)
+        db.commit()
+    db.close()
 
-app = FastAPI(lifespan=lifespan)
 
-
-@app.get("/api/v1/ping")
-def ping():
-    return {"status": "ok"}
-
-app.include_router(auth.router, prefix="/api/v1/auth")
-app.include_router(users.router, prefix="/api/v1/users")
-app.include_router(fraud_rules.router, prefix="/api/v1/fraud-rules")
-app.include_router(transactions.router, prefix="/api/v1/transactions")
+create_admin()
