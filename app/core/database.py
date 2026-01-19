@@ -1,34 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-import os
+from app.core.config import DATABASE_URL
 
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-DATABASE_URL = (
-    f"postgresql+psycopg2://{os.getenv('DB_USER')}:"
-    f"{os.getenv('DB_PASSWORD')}@"
-    f"{os.getenv('DB_HOST')}:"
-    f"{os.getenv('DB_PORT')}/"
-    f"{os.getenv('DB_NAME')}"
-)
-
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 class Base(DeclarativeBase):
     pass
 
-
-engine = create_engine(DATABASE_URL, echo=False)
-
-SessionLocal = sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False,
-)
-
-
 def get_db():
-    """
-    Dependency для FastAPI
-    """
     db = SessionLocal()
     try:
         yield db

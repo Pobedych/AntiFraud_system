@@ -1,23 +1,25 @@
 services:
   db:
     image: postgres:16
-    container_name: antifraud_db
-    restart: always
     environment:
       POSTGRES_DB: antifraud
       POSTGRES_USER: antifraud
       POSTGRES_PASSWORD: antifraud
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
   api:
     build: .
-    container_name: antifraud_api
-    restart: always
     depends_on:
       - db
+      - redis
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -25,13 +27,15 @@ services:
       DB_USER: antifraud
       DB_PASSWORD: antifraud
 
-      RANDOM_SECRET: super-secret-key
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
+      RANDOM_SECRET: super-secret
       ADMIN_EMAIL: admin@example.com
-      ADMIN_FULLNAME: Admin User
+      ADMIN_FULLNAME: Admin
       ADMIN_PASSWORD: Admin1234
     ports:
       - "8000:8000"
 
 volumes:
-  postgres_data:
+  pgdata:

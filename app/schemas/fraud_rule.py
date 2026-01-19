@@ -1,8 +1,3 @@
-"""
-Схемы антифрод-правил.
-DSL здесь — просто строка (Tier 0).
-"""
-
 from pydantic import BaseModel, Field
 
 
@@ -19,9 +14,7 @@ class FraudRuleCreateRequest(FraudRuleBase):
 
 
 class FraudRuleUpdateRequest(FraudRuleBase):
-    """
-    PUT — полное обновление
-    """
+    # PUT = full update
     pass
 
 
@@ -32,8 +25,8 @@ class FraudRuleResponse(BaseModel):
     dslExpression: str
     enabled: bool
     priority: int
-    createdAt: str
-    updatedAt: str
+    createdAt: str | None
+    updatedAt: str | None
 
 
 class FraudRuleValidateRequest(BaseModel):

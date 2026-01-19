@@ -16,9 +16,7 @@ class RegisterRequest(BaseModel):
     age: int | None = Field(None, ge=18, le=120)
     region: str | None = Field(None, max_length=32)
     gender: str | None = Field(None, pattern="^(MALE|FEMALE)$")
-    maritalStatus: str | None = Field(
-        None, pattern="^(SINGLE|MARRIED|DIVORCED|WIDOWED)$"
-    )
+    maritalStatus: str | None = Field(None, pattern="^(SINGLE|MARRIED|DIVORCED|WIDOWED)$")
 
 
 class LoginRequest(BaseModel):
@@ -27,9 +25,6 @@ class LoginRequest(BaseModel):
 
 
 class AuthUserResponse(BaseModel):
-    """
-    Пользователь в ответе auth/register и auth/login
-    """
     id: str
     email: EmailStr
     fullName: str
@@ -39,11 +34,12 @@ class AuthUserResponse(BaseModel):
     maritalStatus: str | None
     role: str
     isActive: bool
-    createdAt: str
-    updatedAt: str
+    createdAt: str | None
+    updatedAt: str | None
 
 
 class AuthResponse(BaseModel):
     accessToken: str
     expiresIn: int
     user: AuthUserResponse
+

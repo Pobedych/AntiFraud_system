@@ -4,42 +4,43 @@
 """
 
 from fastapi import FastAPI
+from sqlalchemy.orm import Session
+
 from app.core.database import Base, engine, SessionLocal
+from app.core.errors import register_error_handlers
 from app.core.config import ADMIN_EMAIL, ADMIN_FULLNAME, ADMIN_PASSWORD
 from app.core.security import hash_password
+
 from app.models.user import User
-from app.api import ping, auth, users, fraud_rules, transactions
+from app.api import ping, auth, users, fraud_rules, transactions, ui
 
-app = FastAPI(title="AntiFraud Service")
+app = FastAPI(title="AntiFraud")
 
-# Подключаем все роутеры
+register_error_handlers(app)
+
+# создаём таблицы
+Base.metadata.create_all(bind=engine)
+
+def ensure_admin():
+    db: Session = SessionLocal()
+    admin = db.query(User).filter(User.role == "ADMIN").first()
+    if not admin:
+        db.add(User(
+            email=ADMIN_EMAIL,
+            password_hash=hash_password(ADMIN_PASSWORD),
+            full_name=ADMIN_FULLNAME,
+            role="ADMIN",
+            is_active=True,
+        ))
+        db.commit()
+    db.close()
+
+ensure_admin()
+
+# роутеры
 app.include_router(ping.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(fraud_rules.router)
 app.include_router(transactions.router)
-
-# Создаем таблицы
-Base.metadata.create_all(bind=engine)
-
-
-def create_admin():
-    """
-    Создаем администратора при старте, если его еще нет.
-    Это КРИТИЧНО для автотестов.
-    """
-    db = SessionLocal()
-    exists = db.query(User).filter(User.role == "ADMIN").first()
-    if not exists:
-        admin = User(
-            email=ADMIN_EMAIL,
-            fullName=ADMIN_FULLNAME,
-            password_hash=hash_password(ADMIN_PASSWORD),
-            role="ADMIN",
-        )
-        db.add(admin)
-        db.commit()
-    db.close()
-
-
-create_admin()
+app.include_router(ui.router)

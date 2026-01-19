@@ -7,7 +7,6 @@ import uuid
 from sqlalchemy import Column, String, Boolean, Integer
 from app.core.database import Base
 
-
 class RuleResult(Base):
     __tablename__ = "rule_results"
 
@@ -17,6 +16,7 @@ class RuleResult(Base):
     rule_id = Column(String, nullable=False)
     rule_name = Column(String, nullable=False)
     priority = Column(Integer, nullable=False)
+    enabled = Column(Boolean, nullable=False)
 
     matched = Column(Boolean, nullable=False)
     description = Column(String, nullable=False)

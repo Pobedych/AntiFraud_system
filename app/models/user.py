@@ -4,10 +4,9 @@ USER / ADMIN различаются только полем role.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import Column, String, Boolean, Integer, DateTime
 from app.core.database import Base
-
 
 class User(Base):
     __tablename__ = "users"
@@ -16,18 +15,14 @@ class User(Base):
     email = Column(String(254), unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
 
-    fullName = Column(String(200), nullable=False)
+    full_name = Column(String(200), nullable=False)
     age = Column(Integer, nullable=True)
     region = Column(String(32), nullable=True)
     gender = Column(String, nullable=True)
-    maritalStatus = Column(String, nullable=True)
+    marital_status = Column(String, nullable=True)
 
     role = Column(String, nullable=False, default="USER")
-    isActive = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
 
-    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    updatedAt = Column(
-        DateTime,
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
-        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
-    )
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)

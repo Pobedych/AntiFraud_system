@@ -1,11 +1,5 @@
-"""
-Схемы транзакций и результатов антифрод-проверки.
-"""
-
 from pydantic import BaseModel, Field
 
-
-# ---------- Location ----------
 
 class Location(BaseModel):
     country: str = Field(..., min_length=2, max_length=2)
@@ -14,20 +8,17 @@ class Location(BaseModel):
     longitude: float | None = Field(None, ge=-180, le=180)
 
 
-# ---------- Transaction ----------
-
 class TransactionCreateRequest(BaseModel):
     """
-    POST /transactions
     userId:
-    - обязателен для ADMIN
-    - игнорируется для USER
+      - ADMIN: обязателен
+      - USER: игнорируем, берём sub из JWT
     """
     userId: str | None = None
 
     amount: float = Field(..., ge=0.01, le=999_999_999.99)
     currency: str = Field(..., min_length=3, max_length=3)
-    timestamp: str
+    timestamp: str  # ISO 8601
 
     merchantId: str | None = Field(None, max_length=64)
     merchantCategoryCode: str | None = Field(None, min_length=4, max_length=4)
@@ -54,11 +45,9 @@ class TransactionResponse(BaseModel):
     ipAddress: str | None
     deviceId: str | None
     channel: str | None
-    location: Location | None
+    location: dict | None
     metadata: dict | None
 
-
-# ---------- Rule Result ----------
 
 class RuleResultResponse(BaseModel):
     ruleId: str
@@ -69,24 +58,27 @@ class RuleResultResponse(BaseModel):
     description: str
 
 
-# ---------- Decision ----------
-
 class TransactionDecisionResponse(BaseModel):
     transaction: TransactionResponse
     ruleResults: list[RuleResultResponse]
 
 
-# ---------- Batch ----------
+class TransactionsListResponse(BaseModel):
+    items: list[TransactionResponse]
+    total: int
+    page: int
+    size: int
+
 
 class BatchTransactionRequest(BaseModel):
     items: list[TransactionCreateRequest] = Field(..., min_items=1, max_items=500)
 
 
-class BatchTransactionItemResult(BaseModel):
+class BatchItemResult(BaseModel):
     index: int
     decision: TransactionDecisionResponse | None = None
     error: dict | None = None
 
 
 class BatchTransactionResponse(BaseModel):
-    items: list[BatchTransactionItemResult]
+    items: list[BatchItemResult]

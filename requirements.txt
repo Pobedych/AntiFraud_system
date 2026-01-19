@@ -1,4 +1,3 @@
-fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
@@ -8,3 +7,5 @@ passlib
 pydantic[email]
 decouple
 alembic
+fastapi
+redis
