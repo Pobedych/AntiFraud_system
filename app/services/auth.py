@@ -11,7 +11,7 @@ from app.core.security import (
 def register(db: Session, data):
     user = User(
         email=data.email,
-        passwordHash=hash_password(data.password),
+        password_hash=hash_password(data.password),
         fullName=data.fullName,
         age=data.age,
         region=data.region,
@@ -31,13 +31,12 @@ def login(db: Session, email: str, password: str):
     if not user:
         return None
 
-    if not verify_password(password, user.passwordHash):
+    if not verify_password(password, user.password_hash):
         return None
 
     token = create_access_token(
-        {
-            "sub": str(user.id),
-            "role": user.role,
-        }
+        user_id=str(user.id),
+        role=user.role,
+
     )
     return token, user

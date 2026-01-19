@@ -12,6 +12,20 @@ from app.services import auth as auth_service
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
+import hashlib
+from passlib.hash import bcrypt
+
+def hash_password(password: str) -> str:
+    """
+    Хеширует пароль для хранения в базе.
+    Если пароль > 72 байт, сначала хешируем через SHA256.
+    """
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        # Сначала SHA256, чтобы получить фиксированную длину
+        password_bytes = hashlib.sha256(password_bytes).digest()
+    # bcrypt через passlib
+    return bcrypt.hash(password_bytes)
 
 @router.post("/register", response_model=AuthResponse)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):

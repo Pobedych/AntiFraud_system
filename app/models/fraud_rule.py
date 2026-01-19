@@ -4,7 +4,7 @@ DSL НЕ парсится (Tier 0), хранится как строка.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, DateTime
 from app.core.database import Base
 
@@ -21,5 +21,9 @@ class FraudRule(Base):
     enabled = Column(Boolean, default=True)
     priority = Column(Integer, default=100)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+    )

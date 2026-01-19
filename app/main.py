@@ -33,7 +33,7 @@ def create_admin():
     if not exists:
         admin = User(
             email=ADMIN_EMAIL,
-            full_name=ADMIN_FULLNAME,
+            fullName=ADMIN_FULLNAME,
             password_hash=hash_password(ADMIN_PASSWORD),
             role="ADMIN",
         )

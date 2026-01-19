@@ -4,7 +4,7 @@ DSL применяется, но в Tier 0 всегда matched = false.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Float, DateTime
 from app.core.database import Base
 
@@ -21,4 +21,4 @@ class Transaction(Base):
     status = Column(String, nullable=False)  # APPROVED / DECLINED
     is_fraud = Column(Boolean, default=False)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
