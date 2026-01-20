@@ -48,7 +48,7 @@ def _tx_to_response(tx: Transaction) -> TransactionResponse:
         deviceId=tx.device_id,
         channel=tx.channel,
         location=tx.location,
-        metadata=tx.metadata_,
+        metadata=tx.extra,
     )
 
 

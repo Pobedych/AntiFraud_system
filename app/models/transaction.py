@@ -23,6 +23,6 @@ class Transaction(Base):
     channel = Column(String, nullable=True)
 
     location = Column(JSON, nullable=True)
-    metadata_ = Column(JSON, nullable=True)
+    extra = Column("metadata", JSON, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)

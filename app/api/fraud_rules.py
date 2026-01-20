@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.core.deps import require_admin
 from app.schemas.fraud_rule import FraudRuleCreateRequest, FraudRuleUpdateRequest, FraudRuleResponse, FraudRuleValidateRequest, FraudRuleValidateResponse
 from app.services import fraud_rules as svc
+from app.dsl.simple_engine import validate_expression
 
 router = APIRouter(prefix="/api/v1/fraud-rules", tags=["fraud-rules"])
 
@@ -53,9 +54,10 @@ def delete(id: str, db: Session = Depends(get_db), _=Depends(require_admin)):
 
 # Tier 0 validate: всегда 200, но isValid=false + DSL_UNSUPPORTED_TIER
 @router.post("/validate", response_model=FraudRuleValidateResponse)
-def validate(data: FraudRuleValidateRequest, _=Depends(require_admin)):
-    return FraudRuleValidateResponse(
-        isValid=False,
-        normalizedExpression=None,
-        errors=[{"code": "DSL_UNSUPPORTED_TIER", "message": "Tier 0"}],
-    )
+def validate(req: FraudRuleValidateRequest):
+    res = validate_expression(req.dslExpression)
+    return {
+        "isValid": res.is_valid,
+        "normalizedExpression": res.normalized if res.is_valid else None,
+        "errors": [e.__dict__ for e in res.errors],
+    }
